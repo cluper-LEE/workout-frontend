@@ -1,25 +1,25 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react'
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom'
+import ExerciseEdit from './components/ExerciseEditForm'
+import ExerciseHome from './routes/ExerciseHome'
+import Home from './routes/Home'
+import { Link } from 'react-router-dom'
+import DailyWorkoutHome from './routes/DailyWorkoutHome'
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <Router basename={process.env.PUBLIC_URL}>
+        <Link to="/">홈</Link>
+        <Routes>
+          <Route path="/" element={<Home />} />
+          <Route path="/exercise" element={<ExerciseHome />} />
+          <Route path="/exercise/edit/:exerciseId" element={<ExerciseEdit />} />
+          <Route path="/dailyWorkouts" element={<DailyWorkoutHome />} />
+        </Routes>
+      </Router>
     </div>
-  );
+  )
 }
 
-export default App;
+export default App
