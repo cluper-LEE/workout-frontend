@@ -1,26 +1,25 @@
 import React, { useEffect, useState } from 'react'
 import axios from 'axios'
-import { Link, useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
+import propTypes from 'prop-types'
 
-function ExerciseEdit() {
-  const params = useParams()
+function ExerciseEdit({ onChange, exerciseId }) {
   const [name, setName] = useState('')
   const [category, setCategory] = useState('')
 
   useEffect(async () => {
-    console.log(params.exerciseId)
-    const response = await axios.get(`/exercises/${params.exerciseId}`)
-    console.log(response)
+    const response = await axios.get(`/exercises/${exerciseId}`)
     setName(response.data.name)
     setCategory(response.data.category)
   }, [])
 
   const onClick = async () => {
-    await axios.patch(`/exercises/${params.exerciseId}`, {
-      id: params.exerciseId,
+    await axios.patch(`/exercises/${exerciseId}`, {
+      id: exerciseId,
       name,
       category,
     })
+    onChange()
   }
   return (
     <form>
@@ -47,6 +46,11 @@ function ExerciseEdit() {
       </Link>
     </form>
   )
+}
+
+ExerciseEdit.propTypes = {
+  onChange: propTypes.func.isRequired,
+  exerciseId: propTypes.number.isRequired,
 }
 
 export default ExerciseEdit

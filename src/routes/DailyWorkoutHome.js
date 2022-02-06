@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
 import { useParams } from 'react-router-dom'
-import DailyWorkoutForm from '../components/DailyWorkoutForm'
+import DailyWorkoutForm from '../components/DailyWorkout/DailyWorkoutForm'
 
 function DailyWorkoutHome() {
   const [date, setDate] = useState(
@@ -11,6 +11,7 @@ function DailyWorkoutHome() {
 
   return (
     <div>
+      <label htmlFor="date">날짜 선택</label>
       <input
         type="date"
         name="date"
