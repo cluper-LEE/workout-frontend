@@ -1,22 +1,36 @@
 import axios from 'axios'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import WorkoutSetForm from './WorkoutSetForm'
 import propTypes from 'prop-types'
 
-function WorkoutForm({ onChange, workoutId }) {
-  const [workoutForm, setWorkoutForm] = useState({
-    id: workoutId ? workoutId : -1,
-    exerciseId: -1,
-    memo: '',
-    workoutSets: [],
-  })
-  const [exercises, setExercises] = useState([])
-  useEffect(async () => {
-    const response = await axios.get('/exercises')
-    if (response.status === 204) {
-      return
-    } else setExercises(response.data)
-  }, [])
+function WorkoutForm({
+  workout,
+  onChange,
+  index,
+  exercises,
+  dailyWorkoutForm,
+}) {
+  const [workoutForm, setWorkoutForm] = useState(
+    workout
+      ? workout
+      : {
+          id: -1,
+          exerciseForm:
+            exercises.length > 0
+              ? exercises[0]
+              : { id: -1, name: '', category: '' },
+          memo: '',
+          dailyWorkoutForm,
+          workoutSetForms: [],
+        }
+  )
+  // const [exercises, setExercises] = useState([])
+  // useEffect(async () => {
+  //   const response = await axios.get('/exercises')
+  //   if (response.status === 204) {
+  //     return
+  //   } else setExercises(response.data)
+  // }, [])
 
   const setMemo = (event) => {
     setWorkoutForm((data) => ({
@@ -34,37 +48,31 @@ function WorkoutForm({ onChange, workoutId }) {
 
   const onClick = async () => {
     let response = null
+    console.log(workoutForm)
     if (workoutForm.id === -1) {
-      response = await axios.post('/workouts', {
-        memo: workoutForm.memo,
-        exerciseId: workoutForm.exerciseId,
-      })
+      response = await axios.post('/workouts', workoutForm)
     } else {
-      response = await axios.patch('/workouts', {
-        memo: workoutForm.memo,
-        exerciseId: workoutForm.exerciseId,
-      })
+      response = await axios.patch('/workouts', workoutForm)
     }
 
-    setWorkoutForm((data) => ({
-      ...data,
-      id: response.data.id,
-    }))
-    console.log(response)
-    onChange(workoutForm.id)
+    onChange(index, response.data)
   }
 
   const addToWorkoutSets = (newId) => {
     setWorkoutForm((data) => ({
       ...data,
-      workoutSets: [...data.workoutSets, newId],
+      workoutSetForms: [...data.workoutSetForms, newId],
     }))
   }
-
   return (
     <div>
       <label htmlFor="exercise">exercise</label>
-      <select name="exercise" id="exercise" onChange={setExerciseId}>
+      <select
+        name="exercise"
+        id="exercise"
+        onChange={setExerciseId}
+        value={workoutForm.exerciseId}
+      >
         {exercises.map((exercise) => (
           <option key={exercise.id} value={exercise.id}>
             {exercise.name}
@@ -81,8 +89,8 @@ function WorkoutForm({ onChange, workoutId }) {
       <button type="button" onClick={onClick}>
         확인
       </button>
-      {workoutForm.workoutSets.length > 0
-        ? workoutForm.workoutSets.map((workoutSet) => (
+      {workoutForm.workoutSetForms.length > 0
+        ? workoutForm.workoutSetForms.map((workoutSet) => (
             <WorkoutSetForm
               key={workoutSet}
               onChange={addToWorkoutSets}
@@ -96,8 +104,11 @@ function WorkoutForm({ onChange, workoutId }) {
 }
 
 WorkoutForm.propTypes = {
-  onChange: propTypes.func.isRequired,
-  workoutId: propTypes.number,
+  workout: propTypes.object,
+  onChange: propTypes.func,
+  index: propTypes.number.isRequired,
+  exercises: propTypes.arrayOf(propTypes.object),
+  dailyWorkoutForm: propTypes.object,
 }
 
 export default WorkoutForm

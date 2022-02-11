@@ -8,8 +8,9 @@ function DailyWorkoutForm({ date }) {
     id: -1,
     date,
     memo: '',
-    workouts: [],
+    workoutForms: [],
   })
+  const [exercises, setExercises] = useState([])
   useEffect(async () => {
     let response = await axios.get('/dailyWorkouts', { params: { date } })
     if (response.status === 204) {
@@ -18,19 +19,15 @@ function DailyWorkoutForm({ date }) {
         date,
       })
     }
-    const workouts = (
-      await axios.get('/workouts', {
-        params: { dailyWorkoutId: response.data.id },
-      })
-    ).data
-    setDailyWorkoutForm((data) => ({
-      id: response.data.id,
-      date: response.data.date,
-      memo: response.data.memo,
-      workouts: [...data.workouts, workouts.map((workout) => workout.id)],
-    }))
-    console.log(dailyWorkoutForm.workouts.length)
+    setDailyWorkoutForm(response.data)
   }, [date])
+
+  useEffect(async () => {
+    const response = await axios.get('/exercises')
+    if (response.status === 204) {
+      return
+    } else setExercises(response.data)
+  }, [])
 
   const setMemo = (event) => {
     setDailyWorkoutForm((data) => ({
@@ -49,32 +46,47 @@ function DailyWorkoutForm({ date }) {
     }))
   }
 
-  const addToWorkouts = (newId) => {
+  const addWorkoutForm = () => {
     setDailyWorkoutForm((data) => ({
       ...data,
-      workouts: [...data.workouts, newId],
+      workoutForms: [...data.workoutForms, null],
     }))
   }
 
+  const updateWorkout = (index, workout) => {
+    setDailyWorkoutForm((data) => {
+      const temp = data.workoutForms
+      temp[index] = workout
+      return { ...data, workoutForms: temp }
+    })
+  }
   return (
     <div>
       <br></br>
-      <label htmlFor="memo">종목</label>
+      {dailyWorkoutForm.workoutForms.length > 0
+        ? dailyWorkoutForm.workoutForms.map((form, index) => (
+            <WorkoutForm
+              key={index}
+              index={index}
+              workout={form}
+              onChange={updateWorkout}
+              exercises={exercises}
+              dailyWorkoutForm={dailyWorkoutForm}
+            />
+          ))
+        : null}
+      <button onClick={addWorkoutForm}>+ 운동 추가</button> <br /> <br />
+      <label htmlFor="memo">이 날의 메모</label>
       <input
         type="text"
         name="memo"
+        id="memo"
         value={dailyWorkoutForm.memo}
         onChange={setMemo}
       />
       <button type="button" onClick={updateMemo}>
         확인
       </button>
-      {dailyWorkoutForm.workouts.length > 0
-        ? dailyWorkoutForm.workouts.map((workout) => (
-            <WorkoutForm key={workout} onChange={addToWorkouts}></WorkoutForm>
-          ))
-        : null}
-      <WorkoutForm onChange={addToWorkouts}></WorkoutForm>
       <br />
     </div>
   )
