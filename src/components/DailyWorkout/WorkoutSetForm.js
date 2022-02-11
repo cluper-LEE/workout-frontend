@@ -50,7 +50,7 @@ function WorkoutSetForm({ onChange }) {
     onChange(workoutSetForm.id)
   }
   return (
-    <form>
+    <div className="pl-2">
       <label htmlFor="setNum">setNum</label>
       <input
         type="number"
@@ -75,12 +75,12 @@ function WorkoutSetForm({ onChange }) {
       <button type="button" onClick={onClick}>
         확인
       </button>
-    </form>
+    </div>
   )
 }
 
 WorkoutSetForm.propTypes = {
-  onChange: propTypes.func.isRequired,
+  onChange: propTypes.func,
 }
 
 export default WorkoutSetForm

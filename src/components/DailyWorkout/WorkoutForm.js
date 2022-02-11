@@ -1,77 +1,30 @@
-import axios from 'axios'
-import React, { useState } from 'react'
+import React from 'react'
 import WorkoutSetForm from './WorkoutSetForm'
 import propTypes from 'prop-types'
 
-function WorkoutForm({
-  workout,
-  onChange,
-  index,
-  exercises,
-  dailyWorkoutForm,
-}) {
-  const [workoutForm, setWorkoutForm] = useState(
-    workout
-      ? workout
-      : {
-          id: -1,
-          exerciseForm:
-            exercises.length > 0
-              ? exercises[0]
-              : { id: -1, name: '', category: '' },
-          memo: '',
-          dailyWorkoutForm,
-          workoutSetForms: [],
-        }
-  )
-  // const [exercises, setExercises] = useState([])
-  // useEffect(async () => {
-  //   const response = await axios.get('/exercises')
-  //   if (response.status === 204) {
-  //     return
-  //   } else setExercises(response.data)
-  // }, [])
+function WorkoutForm({ workout, events, exercises }) {
+  const { onChange, onFlush } = events.workout
 
-  const setMemo = (event) => {
-    setWorkoutForm((data) => ({
-      ...data,
-      memo: event.target.value,
-    }))
+  const changeMemo = (event) => {
+    onChange({ ...workout, memo: event.target.value })
+  }
+  const flushMemo = (event) => {
+    onFlush({ ...workout, memo: event.target.value })
+  }
+  const flushExerciseForm = (event) => {
+    const form = exercises.find((exercise) => exercise.id == event.target.value)
+    onChange({ ...workout, exerciseForm: form })
+    onFlush({ ...workout, exerciseForm: form })
   }
 
-  const setExerciseId = (event) => {
-    setWorkoutForm((data) => ({
-      ...data,
-      exerciseId: event.target.value,
-    }))
-  }
-
-  const onClick = async () => {
-    let response = null
-    console.log(workoutForm)
-    if (workoutForm.id === -1) {
-      response = await axios.post('/workouts', workoutForm)
-    } else {
-      response = await axios.patch('/workouts', workoutForm)
-    }
-
-    onChange(index, response.data)
-  }
-
-  const addToWorkoutSets = (newId) => {
-    setWorkoutForm((data) => ({
-      ...data,
-      workoutSetForms: [...data.workoutSetForms, newId],
-    }))
-  }
   return (
-    <div>
-      <label htmlFor="exercise">exercise</label>
+    <div className="pl-2 border-l-2 mb-2">
+      <label htmlFor="exercise">운동: </label>
       <select
         name="exercise"
         id="exercise"
-        onChange={setExerciseId}
-        value={workoutForm.exerciseId}
+        onChange={flushExerciseForm}
+        value={workout.exerciseForm.id}
       >
         {exercises.map((exercise) => (
           <option key={exercise.id} value={exercise.id}>
@@ -79,25 +32,21 @@ function WorkoutForm({
           </option>
         ))}
       </select>
-      <label htmlFor="memo">memo</label>
+
+      {workout.workoutSetForms.length > 0
+        ? workout.workoutSetForms.map((workoutSet) => (
+            <WorkoutSetForm key={workoutSet}></WorkoutSetForm>
+          ))
+        : null}
+      <WorkoutSetForm></WorkoutSetForm>
+      <label htmlFor="memo">{workout.exerciseForm.name} 메모</label>
       <input
         type="text"
         name="memo"
-        value={workoutForm.memo}
-        onChange={setMemo}
+        value={workout.memo}
+        onBlur={flushMemo}
+        onChange={changeMemo}
       />
-      <button type="button" onClick={onClick}>
-        확인
-      </button>
-      {workoutForm.workoutSetForms.length > 0
-        ? workoutForm.workoutSetForms.map((workoutSet) => (
-            <WorkoutSetForm
-              key={workoutSet}
-              onChange={addToWorkoutSets}
-            ></WorkoutSetForm>
-          ))
-        : null}
-      <WorkoutSetForm onChange={addToWorkoutSets}></WorkoutSetForm>
       <br />
     </div>
   )
@@ -105,10 +54,11 @@ function WorkoutForm({
 
 WorkoutForm.propTypes = {
   workout: propTypes.object,
-  onChange: propTypes.func,
-  index: propTypes.number.isRequired,
   exercises: propTypes.arrayOf(propTypes.object),
-  dailyWorkoutForm: propTypes.object,
+  events: propTypes.shape({
+    workout: propTypes.objectOf(propTypes.func),
+    workoutSet: propTypes.objectOf(propTypes.func),
+  }),
 }
 
 export default WorkoutForm

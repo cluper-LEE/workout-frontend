@@ -11,7 +11,8 @@ function DailyWorkoutForm({ date }) {
     workoutForms: [],
   })
   const [exercises, setExercises] = useState([])
-  useEffect(async () => {
+
+  const refreshData = async () => {
     let response = await axios.get('/dailyWorkouts', { params: { date } })
     if (response.status === 204) {
       response = await axios.post('/dailyWorkouts', {
@@ -20,7 +21,9 @@ function DailyWorkoutForm({ date }) {
       })
     }
     setDailyWorkoutForm(response.data)
-  }, [date])
+  }
+
+  useEffect(() => refreshData(), [date])
 
   useEffect(async () => {
     const response = await axios.get('/exercises')
@@ -29,13 +32,13 @@ function DailyWorkoutForm({ date }) {
     } else setExercises(response.data)
   }, [])
 
-  const setMemo = (event) => {
+  const changeMemo = (event) => {
     setDailyWorkoutForm((data) => ({
       ...data,
       memo: event.target.value,
     }))
   }
-  const updateMemo = async () => {
+  const flushMemo = async () => {
     const response = await axios.patch('/dailyWorkouts', {
       id: dailyWorkoutForm.id,
       memo: dailyWorkoutForm.memo,
@@ -53,25 +56,58 @@ function DailyWorkoutForm({ date }) {
     }))
   }
 
-  const updateWorkout = (index, workout) => {
-    setDailyWorkoutForm((data) => {
-      const temp = data.workoutForms
-      temp[index] = workout
-      return { ...data, workoutForms: temp }
-    })
+  // const onChangeWorkout = (workoutForm) => {
+  //   const index = dailyWorkoutForm.workoutForms.findIndex(
+  //     (form) => form.id == workoutForm.id
+  //   )
+  //   setDailyWorkoutForm((data) => {
+  //     const temp = data.workoutForms
+  //     temp[index] = workoutForm
+  //     return { ...data, workoutForms: temp }
+  //   })
+  // }
+  // const onFlushWorkout = async (workoutForm) => {
+  //   if (workoutForm.id === -1) {
+  //     await axios.post('/workouts', workoutForm)
+  //   } else {
+  //     await axios.patch('/workouts', workoutForm)
+  //   }
+  //   refreshData()
+  // }
+
+  const events = {
+    workout: {
+      onChange: (workoutForm) => {
+        const index = dailyWorkoutForm.workoutForms.findIndex(
+          (form) => form.id == workoutForm.id
+        )
+        setDailyWorkoutForm((data) => {
+          const temp = data.workoutForms
+          temp[index] = workoutForm
+          return { ...data, workoutForms: temp }
+        })
+      },
+      onFlush: async (workoutForm) => {
+        if (workoutForm.id === -1) {
+          await axios.post('/workouts', workoutForm)
+        } else {
+          await axios.patch('/workouts', workoutForm)
+        }
+        refreshData()
+      },
+    },
   }
+
   return (
-    <div>
+    <div className="pl-2">
       <br></br>
       {dailyWorkoutForm.workoutForms.length > 0
         ? dailyWorkoutForm.workoutForms.map((form, index) => (
             <WorkoutForm
               key={index}
-              index={index}
               workout={form}
-              onChange={updateWorkout}
+              events={events}
               exercises={exercises}
-              dailyWorkoutForm={dailyWorkoutForm}
             />
           ))
         : null}
@@ -82,11 +118,9 @@ function DailyWorkoutForm({ date }) {
         name="memo"
         id="memo"
         value={dailyWorkoutForm.memo}
-        onChange={setMemo}
+        onChange={changeMemo}
+        onBlur={flushMemo}
       />
-      <button type="button" onClick={updateMemo}>
-        확인
-      </button>
       <br />
     </div>
   )

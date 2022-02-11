@@ -10,7 +10,7 @@ function DailyWorkoutHome() {
   )
 
   return (
-    <div>
+    <div className="border-l-2 border-sky-300 pl-3">
       <label htmlFor="date">날짜 선택</label>
       <input
         type="date"
