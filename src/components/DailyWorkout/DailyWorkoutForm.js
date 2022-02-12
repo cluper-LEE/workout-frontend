@@ -64,25 +64,27 @@ function DailyWorkoutForm({ date }) {
   }
 
   const events = {
-    workout: {
-      change: (workoutForm) => {
-        const index = dailyWorkoutForm.workoutForms.findIndex(
-          (form) => form.id == workoutForm.id
-        )
-        setDailyWorkoutForm((data) => {
-          const temp = data.workoutForms
-          temp[index] = workoutForm
-          return { ...data, workoutForms: temp }
-        })
-      },
-      flush: async (workoutForm) => {
-        await axios.patch('/workouts', workoutForm)
-        refreshDailyWorkout()
-      },
-      remove: async (workoutForm) => {
-        await axios.delete(`/workouts/${workoutForm.id}`)
-        refreshDailyWorkout()
-      },
+    change: (form) => {
+      const index = dailyWorkoutForm.workoutForms.findIndex(
+        (form) => form.id == form.id
+      )
+      setDailyWorkoutForm((data) => {
+        const temp = data.workoutForms
+        temp[index] = form
+        return { ...data, workoutForms: temp }
+      })
+    },
+    patch: async (path, form) => {
+      await axios.patch(path, form)
+      refreshDailyWorkout()
+    },
+    remove: async (path, { id }) => {
+      await axios.delete(`${path}/${id}`)
+      refreshDailyWorkout()
+    },
+    create: async (path, form) => {
+      await axios.post(path, form)
+      refreshDailyWorkout()
     },
   }
 
